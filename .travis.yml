@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t aelkikhia/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true aelkikhia/react-test npm run test
+
+after_success:
+  - docker build -t aelkikhia/multi-client ./client
+  - docker build -t aelkikhia/multi-nginx ./nginx
+  - docker build -t aelkikhia/multi-api ./api
+  - docker build -t aelkikhia/multi-worker ./worker
+  # log into docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push docker images
+  - docker push aelkikhia/multi-client
+  - docker push aelkikhia/multi-nginx
+  - docker push aelkikhia/multi-api
+  - docker push aelkikhia/multi-worker
